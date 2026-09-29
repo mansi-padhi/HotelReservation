@@ -1,0 +1,6 @@
+{
+  "crons": [
+    { "path": "/api/cron/pre-arrival", "schedule": "0 9 * * *" },
+    { "path": "/api/cron/daily-report", "schedule": "0 0 * * *" }
+  ]
+}
