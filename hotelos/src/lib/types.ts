@@ -1,4 +1,4 @@
-export type AppKey = 'whatsapp' | 'gmail' | 'slack' | 'sheets' | 'gcal' | 'keka'
+export type AppKey = 'whatsapp' | 'gmail' | 'slack' | 'sheets' | 'gcal'
 
 export type RoomStatus = 'available' | 'occupied' | 'dirty' | 'maintenance'
 export type RoomType = 'Standard' | 'Deluxe' | 'Suite' | 'Villa'
@@ -53,8 +53,6 @@ export type HotelEvent =
   | 'vip_arrival'
   | 'daily_report'
   | 'guest_signup'
-  | 'employee_checkin'
-  | 'employee_checkout'
 
 export interface Hotel {
   id: string
@@ -227,32 +225,6 @@ export interface AutomationLog {
   created_at: string
 }
 
-/** Hotel staff. Matched to Keka by work email, or by a linked Keka employee id. */
-export interface Employee {
-  id: string
-  hotel_id: string
-  name: string
-  email: string
-  role: string
-  keka_employee_id?: string
-  keka_employee_label?: string
-  active: boolean
-  created_at: string
-}
-
-/** One shift: clock-in, and clock-out once they leave. */
-export interface AttendanceShift {
-  id: string
-  hotel_id: string
-  employee_id: string
-  clock_in: string
-  clock_out?: string
-  /** The clock-out sent to Keka at check-in (planned shift end), before the real one is known. */
-  planned_clock_out: string
-  keka_checkin?: 'success' | 'failed' | 'skipped'
-  keka_checkout?: 'success' | 'failed' | 'skipped'
-}
-
 export interface DB {
   version: number
   hotels: Hotel[]
@@ -265,8 +237,6 @@ export interface DB {
   maintenance_requests: MaintenanceRequest[]
   guest_requests: GuestRequest[]
   automation_logs: AutomationLog[]
-  employees: Employee[]
-  attendance: AttendanceShift[]
 }
 
 /** A reservation joined with what every screen and automation needs. */

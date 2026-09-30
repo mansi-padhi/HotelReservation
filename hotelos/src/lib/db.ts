@@ -5,7 +5,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import type { DB, Guest, Hotel, Reservation, ReservationView, Room } from './types'
-import { seed, seedEmployees } from './seed'
+import { seed } from './seed'
 
 const DIR = process.env.DATA_DIR || (process.env.VERCEL ? '/tmp/hotelos' : path.join(process.cwd(), '.data'))
 const FILE = path.join(DIR, 'db.json')
@@ -21,15 +21,7 @@ export function db(): DB {
       persist()
     }
   }
-  // Backfill collections added after the data file was first written, keeping existing data.
-  // Runs on the cached copy too, so a running server picks it up without a restart.
-  const d = g.__hotelosDB
-  if (!d.employees) {
-    d.employees = d.hotels.flatMap((h) => seedEmployees(h.id))
-    d.attendance = []
-    persist()
-  }
-  return d
+  return g.__hotelosDB
 }
 
 function persist() {

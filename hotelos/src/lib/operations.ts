@@ -1,7 +1,7 @@
 import { db, joinReservation, mutate, roomIsFree } from './db'
-import type { AttendanceShift, Employee, Folio, FolioItem, Guest, Hotel, Reservation } from './types'
+import type { Folio, FolioItem, Guest, Hotel, Reservation } from './types'
 import { last10, nightsBetween, today, uid } from './utils'
-import { onCheckin, onCheckout, onCheckoutCreateHousekeeping, onEmployeeCheckin, onEmployeeCheckout, onGuestSignup, onNewBooking, onPaymentFailed, onPaymentSuccess } from './automations'
+import { onCheckin, onCheckout, onCheckoutCreateHousekeeping, onGuestSignup, onNewBooking, onPaymentFailed, onPaymentSuccess } from './automations'
 import { hashPassword } from './guestAuth'
 
 /**
@@ -244,71 +244,3 @@ export async function recordPayment(hotel: Hotel, reservationId: string, amount:
   return { ok: true, ref }
 }
 
-// ── Staff attendance ────────────────────────────────────────────────────────
-export const openShift = (employeeId: string) => db().attendance.find((s) => s.employee_id === employeeId && !s.clock_out)
-
-/** Starts a shift and logs the clock-in to Keka (with the planned shift end as its clock-out). */
-export async function clockInEmployee(hotel: Hotel, employeeId: string) {
-  const emp = db().employees.find((e) => e.id === employeeId && e.hotel_id === hotel.id)
-  if (!emp) throw new OpError('Employee not found', 404)
-  if (!emp.active) throw new OpError(`${emp.name} is marked inactive`)
-  if (openShift(emp.id)) throw new OpError(`${emp.name} is already clocked in`)
-  const hours = Math.min(24, Math.max(1, Number(hotel.integrations.keka?.config.shiftHours) || 9))
-  const now = new Date()
-  const shift: AttendanceShift = {
-    id: uid('shf'), hotel_id: hotel.id, employee_id: emp.id,
-    clock_in: now.toISOString(), planned_clock_out: new Date(now.getTime() + hours * 3_600_000).toISOString(),
-  }
-  mutate((d) => d.attendance.unshift(shift))
-  const status = await onEmployeeCheckin(emp, shift, hotel)
-  return mutate((d) => {
-    const s = d.attendance.find((x) => x.id === shift.id)!
-    s.keka_checkin = status
-    return s
-  })
-}
-
-/** Closes the shift and re-sends the day's entry to Keka with the real clock-out. */
-export async function clockOutEmployee(hotel: Hotel, employeeId: string) {
-  const emp = db().employees.find((e) => e.id === employeeId && e.hotel_id === hotel.id)
-  if (!emp) throw new OpError('Employee not found', 404)
-  const open = openShift(emp.id)
-  if (!open) throw new OpError(`${emp.name} isn’t clocked in`)
-  const shift = mutate((d) => {
-    const s = d.attendance.find((x) => x.id === open.id)!
-    s.clock_out = new Date().toISOString()
-    return { ...s }
-  })
-  const status = await onEmployeeCheckout(emp, shift, hotel)
-  return mutate((d) => {
-    const s = d.attendance.find((x) => x.id === shift.id)!
-    s.keka_checkout = status
-    return s
-  })
-}
-
-export function saveEmployee(hotel: Hotel, input: Partial<Employee> & { id?: string }) {
-  const name = input.name?.trim()
-  const email = input.email?.trim().toLowerCase()
-  if (input.id === undefined || name !== undefined) if (!name || name.length < 2) throw new OpError('Enter the employee’s name')
-  if (input.id === undefined || email !== undefined) if (!email || !/^\S+@\S+\.\S+$/.test(email)) throw new OpError('Enter a valid work email — it’s how Keka finds them')
-  return mutate((d) => {
-    if (email && d.employees.some((e) => e.hotel_id === hotel.id && e.email === email && e.id !== input.id)) throw new OpError('Another employee already uses that email', 409)
-    if (input.id) {
-      const e = d.employees.find((x) => x.id === input.id && x.hotel_id === hotel.id)
-      if (!e) throw new OpError('Employee not found', 404)
-      if (name) e.name = name
-      if (email) e.email = email
-      if (input.role !== undefined) e.role = input.role.trim() || e.role
-      if (input.active !== undefined) e.active = Boolean(input.active)
-      if (input.keka_employee_id !== undefined) {
-        e.keka_employee_id = input.keka_employee_id || undefined
-        e.keka_employee_label = input.keka_employee_id ? input.keka_employee_label : undefined
-      }
-      return e
-    }
-    const e: Employee = { id: uid('emp'), hotel_id: hotel.id, name: name!, email: email!, role: input.role?.trim() || 'Staff', active: true, created_at: new Date().toISOString() }
-    d.employees.push(e)
-    return e
-  })
-}

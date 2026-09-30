@@ -1,5 +1,5 @@
 'use client'
-import { BadgeCheck, BedDouble, Calendar, LayoutDashboard, LogOut, Menu, MessageCircle, Plug, Sparkles, SprayCan, Users, Workflow, Wrench, X, Zap } from 'lucide-react'
+import { BedDouble, Calendar, LayoutDashboard, LogOut, Menu, MessageCircle, Plug, Sparkles, SprayCan, Users, Workflow, Wrench, X, Zap } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -15,7 +15,6 @@ const NAV = [
     { href: '/housekeeping', label: 'Housekeeping', icon: SprayCan },
     { href: '/maintenance', label: 'Maintenance', icon: Wrench },
     { href: '/inbox', label: 'Guest inbox', icon: MessageCircle },
-    { href: '/staff', label: 'Staff', icon: BadgeCheck },
   ] },
   { section: 'Automate', items: [
     { href: '/automations', label: 'Automations', icon: Zap },

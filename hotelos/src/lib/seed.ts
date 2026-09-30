@@ -1,4 +1,4 @@
-import type { AutomationLog, DB, Employee, Folio, FolioItem, Guest, Hotel, Reservation, Room, RoomType } from './types'
+import type { AutomationLog, DB, Folio, FolioItem, Guest, Hotel, Reservation, Room, RoomType } from './types'
 import { addDays, nightsBetween, today, uid } from './utils'
 
 export const DEMO_HOTEL_ID = 'htl_hotelator_goa'
@@ -267,20 +267,5 @@ export function seed(): DB {
     maintenance_requests: maintenance,
     guest_requests: guestRequests,
     automation_logs: sampleLogs,
-    employees: seedEmployees(hotelId),
-    attendance: [],
   }
-}
-
-/** Hotel staff. Emails are placeholders — change them to each person's Keka work email. */
-export function seedEmployees(hotelId: string): Employee[] {
-  const now = new Date().toISOString()
-  const staff: Array<[string, string, string]> = [
-    ['Rekha Naik', 'rekha.naik@hotelator.com', 'Housekeeping'],
-    ['Sunil Gawde', 'sunil.gawde@hotelator.com', 'Housekeeping'],
-    ['Maria Fernandes', 'maria.fernandes@hotelator.com', 'Front desk'],
-    ['Imran Shaikh', 'imran.shaikh@hotelator.com', 'Maintenance'],
-    ['Neha Kamat', 'neha.kamat@hotelator.com', 'Front desk'],
-  ]
-  return staff.map(([name, email, role]) => ({ id: uid('emp'), hotel_id: hotelId, name, email, role, active: true, created_at: now }))
 }

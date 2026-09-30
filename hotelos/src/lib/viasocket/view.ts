@@ -29,8 +29,6 @@ const READY_NEEDS: Record<AppKey, string[]> = {
   slack: ['channel_id'],
   sheets: ['spreadsheet_Id', 'grid_Id', 'columns'],
   gcal: ['calendar_id'],
-  // Staff are matched by work email by default, so Keka needs nothing picked to be ready.
-  keka: [],
 }
 
 export function publicIntegrations(hotel: Hotel): PublicIntegrations {
