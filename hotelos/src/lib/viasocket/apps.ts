@@ -41,10 +41,12 @@ export interface AppDef {
   pickers: PickerDef[]
   /** Static choices (not fetched). */
   staticFields?: Array<{ key: string; label: string; options: Array<string | { value: string; label: string }>; default: string }>
+  /** Free-text settings (not fetched), saved when the input loses focus. */
+  textFields?: Array<{ key: string; label: string; default: string; placeholder?: string; help?: string; type?: 'text' | 'number' }>
   note?: string
 }
 
-export const APPS: Record<AppKey, AppDef> = {
+const CORE_APPS: Record<Exclude<AppKey, "keka">, AppDef> = {
   whatsapp: {
     key: 'whatsapp',
     name: 'WhatsApp',
@@ -152,6 +154,34 @@ export const APPS: Record<AppKey, AppDef> = {
   },
 }
 
+const KEKA: AppDef = {
+  key: 'keka',
+  name: 'Keka',
+  serviceId: 'rowfnlue6wf2',
+  icon: 'https://stuff.thingsofbrand.com/keka.com/images/img3_keka.png',
+  accent: '#6F4BF2',
+  blurb: 'Staff attendance: when an employee clocks in or out at the hotel, it’s logged in Keka.',
+  uses: ['Clock-in → attendance entry', 'Clock-out → corrected entry'],
+  actions: {
+    // Log Employee Clock In and Out: searchBy, employeeEmail | employeeId, attendance.{clockIn,clockOut}, premiseName.
+    // Keys from the raw schema (POST scriolZue69X { service_id: "rowfnlue6wf2" }); the doc has no table for it.
+    logAttendance: 'rowvxoik3u26',
+    // Find Employees (read-only) — used by "Send test" so a test never writes attendance.
+    findEmployees: 'row0gg7n6oot',
+  },
+  pickers: [],
+  textFields: [
+    { key: 'premiseName', label: 'Premise name', default: 'Hotelator Grand Goa', placeholder: 'e.g. Hotel — Goa', help: 'Where staff clock in, as it should appear in Keka.' },
+    { key: 'shiftHours', label: 'Planned shift length (hours)', default: '9', type: 'number', help: 'Keka needs a clock-out with every entry. At check-in we send clock-in + this many hours; check-out sends the real time.' },
+  ],
+  note: 'Staff are matched to Keka by their work email, unless you link a Keka employee on the Staff page.',
+}
+
+export const APPS: Record<AppKey, AppDef> = { ...CORE_APPS, keka: KEKA }
+
+/** Per-employee picker on the Staff page: Keka's own employee list (field index → List Employee Form 16). */
+export const KEKA_EMPLOYEE_PICKER = { versionId: 'rowrxypm3twv', fieldKey: 'employeeId' }
+
 export const APP_LIST = Object.values(APPS)
 
 /** Sheets "Add New Row" column steps (need spreadsheet_Id + grid_Id first). */
@@ -186,5 +216,6 @@ export function isAllowedPicker(app: AppKey, versionId: string, fieldKey: string
   const def = APPS[app]
   if (!def) return false
   if (def.pickers.some((p) => p.versionId === versionId && p.fieldKey === fieldKey)) return true
+  if (app === 'keka' && versionId === KEKA_EMPLOYEE_PICKER.versionId && fieldKey === KEKA_EMPLOYEE_PICKER.fieldKey) return true
   return app === 'sheets' && versionId === SHEETS_COLUMNS.versionId && [SHEETS_COLUMNS.selectedKey, SHEETS_COLUMNS.namesKey].includes(fieldKey)
 }

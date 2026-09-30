@@ -118,6 +118,13 @@ export function AppCard({ app, integrations, onChange }: { app: AppKey; integrat
                 </Select>
               </Field>
             ))}
+            {def.textFields?.map((f) => (
+              <Field key={f.key} label={f.label} hint={f.help}>
+                <Input type={f.type === 'number' ? 'number' : 'text'} min={f.type === 'number' ? 1 : undefined} max={f.type === 'number' ? 24 : undefined}
+                  defaultValue={String(cfg[f.key] ?? f.default)} placeholder={f.placeholder}
+                  onBlur={(e) => { const v = e.target.value.trim(); if (v !== String(cfg[f.key] ?? f.default)) saveConfig({ [f.key]: v || f.default }) }} />
+              </Field>
+            ))}
             {app === 'sheets' && cfg.spreadsheet_Id && cfg.grid_Id && (
               <SheetsColumns key={`${cfg.spreadsheet_Id}:${cfg.grid_Id}`} spreadsheetId={cfg.spreadsheet_Id} gridId={cfg.grid_Id} initial={{ column_selected: cfg.column_selected, columns: cfg.columns as SheetColumn[] }} onSave={(c) => saveConfig(c)} />
             )}

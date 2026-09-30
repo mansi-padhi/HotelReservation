@@ -81,3 +81,30 @@ export const calendarEvent = (
 }
 
 export const SHEETS_NEEDS = ['spreadsheet_Id', 'grid_Id', 'columns']
+
+/** "YYYY-MM-DDTHH:MM:SS" in the hotel's local time — the format Keka's clock-in field documents. */
+export function kekaTime(iso: string, timeZone = 'Asia/Kolkata'): string {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' })
+      .formatToParts(new Date(iso))
+      .map((p) => [p.type, p.value]),
+  )
+  return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}:${parts.second}`
+}
+
+/**
+ * Keka → Log Employee Clock In and Out (rowvxoik3u26). Keys from its raw schema:
+ * searchBy picks the identity field; attendance is an input group holding clockIn + clockOut (both required).
+ */
+export const kekaAttendance = (
+  cfg: Cfg,
+  emp: { email: string; keka_employee_id?: string },
+  clockIn: string,
+  clockOut: string,
+) => ({
+  ...(emp.keka_employee_id
+    ? { searchBy: 'employeeId', employeeId: emp.keka_employee_id }
+    : { searchBy: 'email', employeeEmail: emp.email }),
+  attendance: { clockIn: kekaTime(clockIn), clockOut: kekaTime(clockOut) },
+  ...(cfg.premiseName ? { premiseName: String(cfg.premiseName) } : {}),
+})

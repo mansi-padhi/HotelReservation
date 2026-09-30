@@ -111,6 +111,24 @@ export const TEMPLATES: AutomationTemplate[] = [
     tryIt: { label: 'Use “Simulate decline” on a check-in page' },
   },
   {
+    key: 'employee_checkin', name: 'Staff attendance → Keka', icon: 'BadgeCheck',
+    trigger: 'An employee clocks in on the Staff page',
+    steps: [
+      { app: 'system', what: 'Shift started, employee shown as on duty' },
+      { app: 'keka', what: 'Attendance entry: clock-in now, clock-out at planned shift end' },
+    ],
+    tryIt: { label: 'Clock someone in', href: '/staff' },
+  },
+  {
+    key: 'employee_checkout', name: 'Staff clock-out → Keka', icon: 'LogOut',
+    trigger: 'An employee clocks out on the Staff page',
+    steps: [
+      { app: 'system', what: 'Shift closed with the real hours worked' },
+      { app: 'keka', what: 'Same day’s entry updated with the actual clock-out' },
+    ],
+    tryIt: { label: 'Clock someone out', href: '/staff' },
+  },
+  {
     key: 'pre_arrival', name: 'Pre-arrival check-in nudge', icon: 'Clock',
     trigger: 'Every day at 09:00 — arrivals in 3 days who haven’t checked in online',
     steps: [{ app: 'whatsapp', what: 'Reminder with the online check-in link' }],
@@ -140,8 +158,10 @@ export const EVENT_LABELS: Record<HotelEvent | 'test', string> = {
   vip_arrival: 'VIP arrival',
   daily_report: 'Daily report',
   guest_signup: 'Guest signup',
+  employee_checkin: 'Staff clock-in',
+  employee_checkout: 'Staff clock-out',
   test: 'Test',
 }
 
 /** Events a hotel's own Automation Studio flows can listen to. */
-export const STUDIO_EVENTS: HotelEvent[] = ['new_booking', 'guest_signup', 'checkin', 'checkout', 'payment_success', 'payment_failed', 'maintenance', 'guest_message', 'daily_report']
+export const STUDIO_EVENTS: HotelEvent[] = ['new_booking', 'guest_signup', 'checkin', 'employee_checkin', 'employee_checkout', 'checkout', 'payment_success', 'payment_failed', 'maintenance', 'guest_message', 'daily_report']

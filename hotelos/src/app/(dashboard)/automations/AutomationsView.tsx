@@ -1,5 +1,5 @@
 'use client'
-import { ArrowRight, BarChart3, CalendarPlus, CheckCircle2, ChevronRight, CircleDashed, Clock, CreditCard, Crown, DoorOpen, Filter, MessageCircle, Play, Plug, Receipt, ScrollText, SprayCan, UserPlus, Workflow, Wrench, Zap } from 'lucide-react'
+import { ArrowRight, BadgeCheck, BarChart3, CalendarPlus, CheckCircle2, ChevronRight, CircleDashed, Clock, CreditCard, Crown, DoorOpen, Filter, LogOut, MessageCircle, Play, Plug, Receipt, ScrollText, SprayCan, UserPlus, Workflow, Wrench, Zap } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Fragment, useMemo, useState } from 'react'
@@ -15,7 +15,7 @@ import { APPS } from '@/lib/viasocket/apps'
 type Log = AutomationLog & { code?: string }
 type State = 'live' | 'partial' | 'off' | 'paused'
 
-const ICONS: Record<string, React.ComponentType<{ className?: string }>> = { CalendarPlus, Clock, DoorOpen, Receipt, SprayCan, Wrench, MessageCircle, CreditCard, Crown, BarChart3, UserPlus }
+const ICONS: Record<string, React.ComponentType<{ className?: string }>> = { CalendarPlus, Clock, DoorOpen, Receipt, SprayCan, Wrench, MessageCircle, CreditCard, Crown, BarChart3, UserPlus, BadgeCheck, LogOut }
 const WEEK = 7 * 864e5
 
 export default function AutomationsView({ logs, toggles, ready, connected, configured, studio }: {

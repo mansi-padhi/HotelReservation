@@ -31,6 +31,12 @@ export async function POST(req: Request) {
         ...common, action: def.actions.addRow!, needs: SHEETS_NEEDS, summary: 'Test ledger row',
         build: (c) => sheetRow(c, { event: 'test', reservation_code: 'TEST', guest_name: 'Test Guest', guest_phone: '+91 90000 00000', room: '101', room_type: 'Standard', check_in: today(), check_out: today(), nights: 1, amount: 0, paid: 0, status: 'test', source: 'direct', timestamp: new Date().toISOString() }),
       })
+    } else if (app === 'keka') {
+      // Read-only: a test must not create a fake attendance entry. Keys from the Find Employees table.
+      r = await safeRun({
+        ...common, action: def.actions.findEmployees!, summary: 'Test Keka connection (list employees)',
+        build: () => ({ mode: 'all', pageNumber: 1, pageSize: 50, filters: { employmentStatus: ['Working'] }, select_response_fields: ['id', 'email', 'displayName'] }),
+      })
     } else {
       r = await safeRun({ ...common, action: def.actions.createEvent!, needs: ['calendar_id'], summary: 'Test calendar event', build: (c) => calendarEvent(c, hotel, { summary: '✅ Hotelator OS test event', description: 'Created through viaSocket to confirm the connection.', date: today(), time: '18:00', duration: '00:30' }) })
     }

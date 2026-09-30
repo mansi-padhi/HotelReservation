@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     mutate((d) => {
       const h = d.hotels.find((x) => x.id === hotel.id)!
       const keepConfig = existing?.auth_id === auth_id ? existing.config : {}
-      const staticDefaults = Object.fromEntries((def.staticFields ?? []).map((f) => [f.key, f.default]))
+      const staticDefaults = Object.fromEntries([...(def.staticFields ?? []), ...(def.textFields ?? [])].map((f) => [f.key, f.default]))
       h.integrations[app] = { auth_id, script_id: scriptId, config: { ...staticDefaults, ...keepConfig }, connected_at: new Date().toISOString() }
     })
     log({ hotel_id: hotel.id, event_type: 'test', app, status: 'success', summary: `${def.name} connected and enabled via viaSocket` })

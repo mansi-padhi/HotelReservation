@@ -65,7 +65,7 @@ export default function ConnectionsBoard({ initial }: { initial: PublicIntegrati
       </Card>
 
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-sm font-medium text-slate-300">{ready} of 5 apps ready</h2>
+        <h2 className="text-sm font-medium text-slate-300">{ready} of {APP_LIST.length} apps ready</h2>
         <Link href="/automations/studio" className="text-sm text-brand-400 hover:text-brand-300">Need another app? Build it in Automation Studio →</Link>
       </div>
       <div className="grid gap-5 lg:grid-cols-2 2xl:grid-cols-3">

@@ -52,7 +52,7 @@ export default function DashboardPage() {
         <Link href="/automations/settings" className="group flex items-center gap-4 rounded-2xl border border-brand-400/20 bg-gradient-to-r from-brand-400/[0.08] via-transparent to-transparent p-4 transition hover:border-brand-400/40">
           <div className="rounded-xl bg-brand-400/15 p-2.5"><Sparkles className="h-5 w-5 text-brand-400" /></div>
           <div className="flex-1">
-            <div className="text-sm font-medium text-white">{ready === 0 ? 'Turn on your guest-journey automations' : `${ready}/5 apps ready — finish connecting`}</div>
+            <div className="text-sm font-medium text-white">{ready === 0 ? 'Turn on your guest-journey automations' : `${ready}/${APP_LIST.length} apps ready — finish connecting`}</div>
             <div className="text-xs text-slate-400">Connect WhatsApp, Gmail, Slack, Sheets and Calendar through viaSocket. Two clicks each, no API keys.</div>
           </div>
           <div className="hidden gap-1.5 sm:flex">{APP_LIST.map((a) => <span key={a.key} className={cn(!integ.apps[a.key].ready && 'opacity-40 grayscale')}><AppIcon src={a.icon} name={a.name} size={28} /></span>)}</div>

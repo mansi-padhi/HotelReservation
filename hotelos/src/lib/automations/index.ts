@@ -4,12 +4,12 @@
  * and never breaks the hotel operation that triggered it.
  */
 import { db, getHotel, joinReservation, mutate } from '../db'
-import type { Folio, Guest, Hotel, HotelEvent, MaintenanceRequest, ReservationView } from '../types'
+import type { AttendanceShift, Employee, Folio, Guest, Hotel, HotelEvent, MaintenanceRequest, ReservationView } from '../types'
 import { addDays, inr, last10, prettyDate, today, uid } from '../utils'
 import { APPS } from '../viasocket/apps'
 import { runCustomFlow } from '../viasocket/client'
 import { bookingEmailHTML, checkinEmailHTML, invoiceEmailHTML, welcomeEmailHTML } from './emails'
-import { calendarEvent, gmailSend, sheetRow, SHEETS_NEEDS, slackPost, waText } from './inputs'
+import { calendarEvent, gmailSend, kekaAttendance, sheetRow, SHEETS_NEEDS, slackPost, waText } from './inputs'
 import { isEnabled, log, safeRun } from './run'
 
 export const appUrl = () => (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '')
@@ -21,6 +21,7 @@ const A = {
   slack: APPS.slack.actions.sendMessage!,
   sheet: APPS.sheets.actions.addRow!,
   cal: APPS.gcal.actions.createEvent!,
+  keka: APPS.keka.actions.logAttendance!,
 }
 
 const first = (name: string) => name.split(' ')[0]
@@ -325,6 +326,39 @@ export async function onGuestSignup(guest: Guest, hotelIn: Hotel) {
     safeRun({ ...base, app: 'slack', action: A.slack, needs: ['channel_id'], summary: `New member alert: ${guest.name}`, build: (c) => slackPost(c, `🎉 *New website member*\n*${guest.name}* · ${guest.phone}${guest.email ? ` · ${guest.email}` : ''}\n${returning ? `Returning guest — ${guest.total_stays} past stay(s), ${inr(guest.total_spend)} lifetime.` : 'First time with us.'}`) }),
     fireStudioFlows(hotel, 'guest_signup', studioPayload('guest_signup', hotel, undefined, { guest: { name: guest.name, phone: guest.phone, email: guest.email ?? '', returning, total_stays: guest.total_stays, marketing_opt_in: Boolean(guest.marketing_opt_in) } })),
   ])
+}
+
+// ── 12 + 13. Staff attendance → Keka ───────────────────────────────────────
+function staffPayload(event: HotelEvent, hotel: Hotel, emp: Employee, shift: AttendanceShift) {
+  return studioPayload(event, hotel, undefined, {
+    employee: { name: emp.name, email: emp.email, role: emp.role },
+    shift: { clock_in: shift.clock_in, clock_out: shift.clock_out ?? null, planned_clock_out: shift.planned_clock_out },
+  })
+}
+
+/** Keka needs a clock-out with every entry, so check-in sends the planned shift end; check-out corrects it. */
+export async function onEmployeeCheckin(emp: Employee, shift: AttendanceShift, hotelIn: Hotel) {
+  const hotel = fresh(hotelIn)
+  const [r] = await Promise.all([
+    safeRun({
+      hotel, event: 'employee_checkin', app: 'keka', action: A.keka, summary: `Clock-in logged in Keka: ${emp.name}`,
+      build: (c) => kekaAttendance(c, emp, shift.clock_in, shift.planned_clock_out),
+    }),
+    fireStudioFlows(hotel, 'employee_checkin', staffPayload('employee_checkin', hotel, emp, shift)),
+  ])
+  return r.status
+}
+
+export async function onEmployeeCheckout(emp: Employee, shift: AttendanceShift, hotelIn: Hotel) {
+  const hotel = fresh(hotelIn)
+  const [r] = await Promise.all([
+    safeRun({
+      hotel, event: 'employee_checkout', app: 'keka', action: A.keka, summary: `Clock-out logged in Keka: ${emp.name}`,
+      build: (c) => kekaAttendance(c, emp, shift.clock_in, shift.clock_out!),
+    }),
+    fireStudioFlows(hotel, 'employee_checkout', staffPayload('employee_checkout', hotel, emp, shift)),
+  ])
+  return r.status
 }
 
 export { isEnabled }

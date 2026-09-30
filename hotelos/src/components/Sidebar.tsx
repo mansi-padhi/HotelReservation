@@ -1,5 +1,5 @@
 'use client'
-import { BedDouble, Calendar, LayoutDashboard, LogOut, Menu, MessageCircle, Plug, Sparkles, SprayCan, Users, Workflow, Wrench, X, Zap } from 'lucide-react'
+import { BadgeCheck, BedDouble, Calendar, LayoutDashboard, LogOut, Menu, MessageCircle, Plug, Sparkles, SprayCan, Users, Workflow, Wrench, X, Zap } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -15,6 +15,7 @@ const NAV = [
     { href: '/housekeeping', label: 'Housekeeping', icon: SprayCan },
     { href: '/maintenance', label: 'Maintenance', icon: Wrench },
     { href: '/inbox', label: 'Guest inbox', icon: MessageCircle },
+    { href: '/staff', label: 'Staff', icon: BadgeCheck },
   ] },
   { section: 'Automate', items: [
     { href: '/automations', label: 'Automations', icon: Zap },
@@ -23,7 +24,7 @@ const NAV = [
   ] },
 ]
 
-export function Sidebar({ hotelName, connected, badges }: { hotelName: string; connected: number; badges: Record<string, number> }) {
+export function Sidebar({ hotelName, connected, total, badges }: { hotelName: string; connected: number; total: number; badges: Record<string, number> }) {
   const path = usePathname()
   const router = useRouter()
   const [open, setOpen] = useState(false)
@@ -65,8 +66,8 @@ export function Sidebar({ hotelName, connected, badges }: { hotelName: string; c
       <div className="space-y-2 p-3">
         <Link href="/automations/settings" className="block rounded-xl border border-brand-400/20 bg-gradient-to-br from-brand-400/10 to-transparent p-3.5">
           <div className="flex items-center gap-2 text-sm font-medium text-white"><Sparkles className="h-4 w-4 text-brand-400" /> viaSocket</div>
-          <div className="mt-1 text-xs text-slate-400">{connected}/5 apps connected</div>
-          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-brand-400" style={{ width: `${(connected / 5) * 100}%` }} /></div>
+          <div className="mt-1 text-xs text-slate-400">{connected}/{total} apps connected</div>
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-brand-400" style={{ width: `${(connected / total) * 100}%` }} /></div>
         </Link>
         <button onClick={logout} className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-slate-400 hover:bg-white/[0.04] hover:text-white"><LogOut className="h-4 w-4" /> Sign out</button>
       </div>
